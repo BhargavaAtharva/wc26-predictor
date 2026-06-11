@@ -8,12 +8,19 @@ export default async function LeaderboardPage() {
     .from('leaderboard')
     .select('*')
 
+  const { count: finishedCount } = await supabase
+    .from('fixtures')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'finished')
+  const hasFinishedMatches = (finishedCount || 0) > 0
+
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <LeaderboardClient
       leaderboard={leaderboard || []}
       currentUserId={user?.id || null}
+      hasFinishedMatches={hasFinishedMatches}
     />
   )
 }

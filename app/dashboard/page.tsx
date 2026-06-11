@@ -17,8 +17,20 @@ export default async function DashboardPage() {
   const { data: leaderboard } = await supabase
     .from('leaderboard')
     .select('*')
-const rank = leaderboard ? leaderboard.findIndex(e => e.user_id === user.id) + 1 : 0
-const userStats = leaderboard ? leaderboard.find(e => e.user_id === user.id) : null
+
+  const { count: finishedCount } = await supabase
+    .from('fixtures')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'finished')
+  const hasFinishedMatches = (finishedCount || 0) > 0
+
+  const userStats = leaderboard ? leaderboard.find(e => e.user_id === user.id) : null
+
+  let rank = 0
+  if (leaderboard && userStats && hasFinishedMatches) {
+    const betterUsers = leaderboard.filter(e => e.total_points > (userStats.total_points || 0))
+    rank = betterUsers.length + 1
+  }
 
   const { data: upcomingFixtures } = await supabase
     .from('fixtures')

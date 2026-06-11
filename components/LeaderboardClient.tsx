@@ -13,14 +13,30 @@ type LeaderboardEntry = {
 export default function LeaderboardClient({
   leaderboard,
   currentUserId,
+  hasFinishedMatches = false,
 }: {
   leaderboard: LeaderboardEntry[]
   currentUserId: string | null
+  hasFinishedMatches?: boolean
 }) {
-  const currentUserEntry = leaderboard.find(e => e.user_id === currentUserId)
-  const currentUserRank = leaderboard.findIndex(e => e.user_id === currentUserId) + 1
+  // 1. Sort leaderboard by: total_points DESC, exact_scores DESC, correct_results DESC
+  const sortedLeaderboard = [...leaderboard].sort((a, b) => {
+    if (b.total_points !== a.total_points) return b.total_points - a.total_points
+    if (b.exact_scores !== a.exact_scores) return b.exact_scores - a.exact_scores
+    return b.correct_results - a.correct_results
+  })
+
+  // 2. Standard Competition Ranking: 1 + number of users who have strictly more points
+  const getRank = (entry: LeaderboardEntry) => {
+    if (!hasFinishedMatches) return 0
+    return sortedLeaderboard.filter(other => other.total_points > entry.total_points).length + 1
+  }
+
+  const currentUserEntry = sortedLeaderboard.find(e => e.user_id === currentUserId)
+  const currentUserRank = currentUserEntry ? getRank(currentUserEntry) : 0
 
   const medalColor = (rank: number) => {
+    if (rank === 0) return null
     if (rank === 1) return '#FFD700'
     if (rank === 2) return '#C0C0C0'
     if (rank === 3) return '#CD7F32'
@@ -58,7 +74,9 @@ export default function LeaderboardClient({
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#0a0a0a' }}>{rank}</span>
               </div>
             ) : (
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#444' }}>{rank}</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#444' }}>
+                {hasFinishedMatches ? rank : '—'}
+              </span>
             )}
           </div>
 
@@ -132,15 +150,15 @@ export default function LeaderboardClient({
           <a href="/fixtures" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>fixtures</a>
         </div>
 
-        {leaderboard.length === 0 ? (
+        {sortedLeaderboard.length === 0 ? (
           <p style={{ color: '#444', fontSize: '14px' }}>no predictions yet. be the first.</p>
         ) : (
           <div>
-            {leaderboard.map((entry, index) => (
+            {sortedLeaderboard.map((entry) => (
               <Entry
                 key={entry.user_id}
                 entry={entry}
-                rank={index + 1}
+                rank={getRank(entry)}
                 highlight={entry.user_id === currentUserId}
               />
             ))}
