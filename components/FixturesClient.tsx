@@ -289,6 +289,7 @@ const upcoming = fixtures
       <div style={{ padding: 'clamp(16px, 4vw, 32px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 10 }}>
         <Logo />
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <a href="/dashboard" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>dashboard</a>
           <a href="/leaderboard" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>leaderboard</a>
           <button onClick={() => setView('all')} style={{ fontSize: '14px', color: '#bbb', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             view all
