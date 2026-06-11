@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@source "../app";
+@source "../components";
+
+@theme {
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --color-background: #0a0a0a;
+  --color-surface: #111111;
+  --color-border: #1f1f1f;
+  --color-muted: #3a3a3a;
+  --color-subtle: #6b6b6b;
+  --color-primary: #e8e8e8;
+  --color-accent: #d4f15c;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #e8e8e8;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
