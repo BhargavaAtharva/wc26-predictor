@@ -389,7 +389,7 @@ const upcoming = fixtures
                       value={inputScores[current.id]?.home ?? ''}
                       onChange={e => setInputScores(s => ({ ...s, [current.id]: { ...s[current.id], home: e.target.value, away: s[current.id]?.away ?? '' } }))}
                       onMouseDown={e => e.stopPropagation()}
-                      onTouchStart={e => e.stopPropagation()}placeholder="0"
+                      onTouchStart={e => e.stopPropagation()} placeholder="—"
                       onKeyDown={e => { if (e.key === 'Enter') savePrediction() }}
                       style={{
                         width: '64px', height: '64px', textAlign: 'center',
@@ -406,7 +406,7 @@ const upcoming = fixtures
                       onMouseDown={e => e.stopPropagation()}
                       onTouchStart={e => e.stopPropagation()}
                       onKeyDown={e => { if (e.key === 'Enter') savePrediction() }}
-                      placeholder="0"
+                      placeholder="—"
                       style={{
                         width: '64px', height: '64px', textAlign: 'center',
                         backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a',
