@@ -1,11 +1,12 @@
--- 1. Add column to predictions table
-ALTER TABLE public.predictions ADD COLUMN predicted_scorer text;
+-- 1. Drop old single column if exists, and add predicted_scorers array column to predictions table
+ALTER TABLE public.predictions DROP COLUMN IF EXISTS predicted_scorer;
+ALTER TABLE public.predictions ADD COLUMN IF NOT EXISTS predicted_scorers text[];
 
--- 2. Add column to fixtures table (array of text for multiple scorers)
-ALTER TABLE public.fixtures ADD COLUMN scorers text[];
+-- 2. Add scorers column to fixtures table (array of text for multiple scorers)
+ALTER TABLE public.fixtures ADD COLUMN IF NOT EXISTS scorers text[];
 
 -- 3. Add column to scores table to store bonus points
-ALTER TABLE public.scores ADD COLUMN scorer_pts int DEFAULT 0;
+ALTER TABLE public.scores ADD COLUMN IF NOT EXISTS scorer_pts int DEFAULT 0;
 
 -- 4. Update the calculate_scores RPC function
 CREATE OR REPLACE FUNCTION public.calculate_scores(p_fixture_id uuid)
@@ -54,10 +55,11 @@ begin
       g_pts := 2;
     end if;
 
-    -- 4. Scorer Prediction Bonus (2 points)
-    if pred.predicted_scorer is not null and fix.scorers is not null then
-      if pred.predicted_scorer = any(fix.scorers) then
-        s_pts := 2;
+    -- 4. Scorer Prediction Bonus (All-or-Nothing Combo: +2 points per correct scorer, 0 total if any scorer is wrong)
+    if pred.predicted_scorers is not null and array_length(pred.predicted_scorers, 1) > 0 and fix.scorers is not null then
+      -- If all predicted scorers are contained within the actual match scorers
+      if pred.predicted_scorers <@ fix.scorers then
+        s_pts := array_length(pred.predicted_scorers, 1) * 2;
       end if;
     end if;
 
