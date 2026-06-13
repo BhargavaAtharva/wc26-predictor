@@ -50,14 +50,15 @@ const FLAGS: Record<string, string> = {
   'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Norway': '🇳🇴', 'Sweden': '🇸🇪',
   'Russia': '🇷🇺', 'China': '🇨🇳', 'Thailand': '🇹🇭',
   'Vietnam': '🇻🇳', 'Kazakhstan': '🇰🇿', 'Azerbaijan': '🇦🇿',
+  'Ivory Coast': '🇨🇮'
 }
 
 function formatIST(dateStr: string) {
   const d = new Date(dateStr)
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const ist = new Date(d.getTime() + (5.5 * 60 * 60 * 1000))
-  return `${days[ist.getUTCDay()]}, ${ist.getUTCDate()} ${months[ist.getUTCMonth()]} · ${String(ist.getUTCHours()).padStart(2,'0')}:${String(ist.getUTCMinutes()).padStart(2,'0')} IST`
+  return `${days[ist.getUTCDay()]}, ${ist.getUTCDate()} ${months[ist.getUTCMonth()]} · ${String(ist.getUTCHours()).padStart(2, '0')}:${String(ist.getUTCMinutes()).padStart(2, '0')} IST`
 }
 
 function getFlag(team: string | null) {
@@ -79,9 +80,9 @@ export default function FixturesClient({
   const predMap: Record<string, Prediction> = {}
   initialPredictions.forEach(p => { predMap[p.fixture_id] = p })
 
-const upcoming = fixtures
-  .filter(f => f.status !== 'finished' && new Date(f.kickoff_at) > new Date() && f.home_team !== null && f.away_team !== null)
-  .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
+  const upcoming = fixtures
+    .filter(f => f.status !== 'finished' && new Date(f.kickoff_at) > new Date() && f.home_team !== null && f.away_team !== null)
+    .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
 
   const finished = fixtures
     .filter(f => f.status === 'finished')
@@ -145,16 +146,16 @@ const upcoming = fixtures
     }, 300)
   }
   function jumpToFixture(fixtureId: string) {
-  const index = queue.findIndex(f => f.id === fixtureId)
-  if (index === -1) return
-  setQueue(q => {
-    const reordered = [...q]
-    const [item] = reordered.splice(index, 1)
-    return [item, ...reordered]
-  })
-  setShowInput(false)
-  setView('cards')
-}
+    const index = queue.findIndex(f => f.id === fixtureId)
+    if (index === -1) return
+    setQueue(q => {
+      const reordered = [...q]
+      const [item] = reordered.splice(index, 1)
+      return [item, ...reordered]
+    })
+    setShowInput(false)
+    setView('cards')
+  }
 
   async function savePrediction() {
     if (!current) return
@@ -188,19 +189,19 @@ const upcoming = fixtures
     }
   }
   async function deletePrediction(fixtureId: string) {
-  await supabase
-    .from('predictions')
-    .delete()
-    .eq('user_id', userId)
-    .eq('fixture_id', fixtureId)
+    await supabase
+      .from('predictions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('fixture_id', fixtureId)
 
-  setPredicted(p => {
-    const updated = { ...p }
-    delete updated[fixtureId]
-    return updated
-  })
-  setShowInput(false)
-}
+    setPredicted(p => {
+      const updated = { ...p }
+      delete updated[fixtureId]
+      return updated
+    })
+    setShowInput(false)
+  }
 
   const predictedCount = queue.filter(f => predicted[f.id]).length
   const totalUpcoming = upcoming.length
@@ -208,9 +209,9 @@ const upcoming = fixtures
   if (view === 'all') {
     return (
       <main style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', color: '#e8e8e8', fontFamily: 'inherit' }}>
-<div style={{
-  padding: 'clamp(16px, 4vw, 32px)',
-}}>
+        <div style={{
+          padding: 'clamp(16px, 4vw, 32px)',
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.03em' }}>all fixtures</h1>
             <button onClick={() => setView('cards')} style={{ fontSize: '13px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -222,13 +223,13 @@ const upcoming = fixtures
             const pred = predicted[f.id]
             const locked = new Date(f.kickoff_at) <= new Date()
             return (
-              <div key={f.id} 
-      onClick={() => { if (!locked) jumpToFixture(f.id) }}
-      style={{
-                display: 'grid', gridTemplateColumns: '1fr auto 1fr',
-                alignItems: 'center', gap: '12px',
-                padding: '14px 0', borderBottom: '1px solid #1a1a1a',
-              }}>
+              <div key={f.id}
+                onClick={() => { if (!locked) jumpToFixture(f.id) }}
+                style={{
+                  display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+                  alignItems: 'center', gap: '12px',
+                  padding: '14px 0', borderBottom: '1px solid #1a1a1a',
+                }}>
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ fontSize: '18px' }}>{getFlag(f.home_team)}</p>
                   <p style={{ fontSize: '13px', fontWeight: 600 }}>{f.home_team || 'TBD'}</p>
