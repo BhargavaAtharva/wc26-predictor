@@ -110,9 +110,10 @@ export default function RulesClient({
             { pts: 7, title: 'exact score', desc: 'you predict 2-1, it ends 2-1. pure perfection.', badge: 'max points' },
             { pts: 5, title: 'result + goals', desc: 'you predict 2-0, it ends 2-1. correct winner & one team\'s score matches.', badge: 'half perfect' },
             { pts: 4, title: 'correct result', desc: 'you predict 1-0, it ends 3-1. correct winner but no goals match.', badge: 'decent pick' },
-            { pts: 2, title: 'goal match consolation', desc: 'you predict 2-1, it ends 0-1. wrong winner, but you nailed the away goals.', badge: 'consolation' }
+            { pts: 2, title: 'goal match consolation', desc: 'you predict 2-1, it ends 0-1. wrong winner, but you nailed the away goals.', badge: 'consolation' },
+            { pts: '+2/scorer', title: 'goalscorer combo', desc: 'predict 1 or more goalscorers. if ALL of them score, get +2 per player. if even one misses, you get 0 bonus.', badge: 'new bonus' }
           ].map(rule => (
-            <div key={rule.pts} style={{
+            <div key={rule.title} style={{
               backgroundColor: '#111',
               border: '1px solid #1a1a1a',
               borderRadius: '16px',
@@ -132,7 +133,9 @@ export default function RulesClient({
                 <p style={{ fontSize: '13px', color: '#666', lineHeight: 1.5 }}>{rule.desc}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span style={{ fontSize: '36px', fontWeight: 800, color: '#d4f15c', lineHeight: 1 }}>+{rule.pts}</span>
+                <span style={{ fontSize: '30px', fontWeight: 800, color: '#d4f15c', lineHeight: 1 }}>
+                  {typeof rule.pts === 'number' ? `+${rule.pts}` : rule.pts}
+                </span>
                 <span style={{ fontSize: '11px', color: '#444', textTransform: 'lowercase' }}>points</span>
               </div>
             </div>
