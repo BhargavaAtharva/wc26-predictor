@@ -13,6 +13,7 @@ type Fixture = {
   status: string
   home_score: number | null
   away_score: number | null
+  scorers?: string[] | null
 }
 
 function formatDate(dateStr: string) {
@@ -27,6 +28,7 @@ function formatDate(dateStr: string) {
 
 export default function AdminClient({ fixtures }: { fixtures: Fixture[] }) {
   const [scores, setScores] = useState<Record<string, { home: string; away: string }>>({})
+  const [fixtureScorers, setFixtureScorers] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState<Record<string, boolean>>({})
   const [saved, setSaved] = useState<Record<string, boolean>>({})
   const [filter, setFilter] = useState<string>('all')
@@ -40,9 +42,14 @@ export default function AdminClient({ fixtures }: { fixtures: Fixture[] }) {
     const away = parseInt(score.away)
     if (isNaN(home) || isNaN(away)) return
 
+    const text = fixtureScorers[fixtureId] !== undefined
+      ? fixtureScorers[fixtureId]
+      : (fixtures.find(f => f.id === fixtureId)?.scorers?.join(', ') || '')
+    const scorersArr = text.split(',').map(s => s.trim()).filter(Boolean)
+
     setSaving(s => ({ ...s, [fixtureId]: true }))
 
-    const result = await saveResultAction(fixtureId, home, away)
+    const result = await saveResultAction(fixtureId, home, away, scorersArr.length > 0 ? scorersArr : null)
     console.log('result:', result)
 
     setSaving(s => ({ ...s, [fixtureId]: false }))
@@ -122,10 +129,28 @@ export default function AdminClient({ fixtures }: { fixtures: Fixture[] }) {
                       {f.home_score} — {f.away_score} ✓
                     </span>
                   )}
+                  {f.scorers && f.scorers.length > 0 && (
+                    <span style={{ color: '#666', marginLeft: '8px', fontStyle: 'italic' }}>
+                      ({f.scorers.join(', ')})
+                    </span>
+                  )}
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="scorers (comma-separated)"
+                  value={fixtureScorers[f.id] ?? (f.scorers ? f.scorers.join(', ') : '')}
+                  onChange={e => setFixtureScorers(s => ({ ...s, [f.id]: e.target.value }))}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#111', border: '1px solid #2a2a2a',
+                    borderRadius: '6px', color: '#e8e8e8', fontSize: '12px',
+                    width: '180px',
+                    fontFamily: 'inherit',
+                  }}
+                />
                 <input
                   type="number"
                   min="0"

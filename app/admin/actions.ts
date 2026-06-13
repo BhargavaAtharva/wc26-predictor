@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
-export async function saveResult(fixtureId: string, homeScore: number, awayScore: number) {
+export async function saveResult(fixtureId: string, homeScore: number, awayScore: number, scorers: string[] | null) {
   // Verify the caller is the admin user via their auth session
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,7 +26,13 @@ export async function saveResult(fixtureId: string, homeScore: number, awayScore
 
   const { error } = await adminClient
     .from('fixtures')
-    .update({ home_score: homeScore, away_score: awayScore, result, status: 'finished' })
+    .update({ 
+      home_score: homeScore, 
+      away_score: awayScore, 
+      result, 
+      status: 'finished',
+      scorers: scorers || null
+    })
     .eq('id', fixtureId)
 
   if (error) return { error: error.message }

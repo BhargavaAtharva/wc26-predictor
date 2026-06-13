@@ -12,6 +12,7 @@ type Prediction = {
   id: string
   predicted_home: number
   predicted_away: number
+  predicted_scorer: string | null
   fixtures: {
     home_team: string
     away_team: string
@@ -144,6 +145,11 @@ export default function ProfileClient({
                   <p style={{ fontSize: '13px', color: '#666' }}>
                     {p.predicted_home} — {p.predicted_away}
                   </p>
+                  {p.predicted_scorer && (
+                    <p style={{ fontSize: '10px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                      ({p.predicted_scorer})
+                    </p>
+                  )}
                   {finished && (
                     <p style={{ fontSize: '11px', color: '#444', marginTop: '2px' }}>
                       {f.home_score} — {f.away_score}

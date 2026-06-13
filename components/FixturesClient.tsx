@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Logo from './Logo'
 
@@ -22,6 +22,7 @@ type Prediction = {
   fixture_id: string
   predicted_home: number
   predicted_away: number
+  predicted_scorer?: string | null
 }
 
 const FLAGS: Record<string, string> = {
@@ -94,6 +95,19 @@ export default function FixturesClient({
   const [inputScores, setInputScores] = useState<Record<string, { home: string; away: string }>>({})
   const [saving, setSaving] = useState(false)
   const [showInput, setShowInput] = useState(false)
+  const [playersData, setPlayersData] = useState<Record<string, string[]>>({})
+  const [inputScorers, setInputScorers] = useState<Record<string, string>>({})
+  const [showScorerList, setShowScorerList] = useState(false)
+
+  useEffect(() => {
+    fetch('/players.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Not found')
+        return res.json()
+      })
+      .then(data => setPlayersData(data))
+      .catch(err => console.log('Could not load players.json yet:', err.message))
+  }, [])
 
   const dragStart = useRef<{ x: number; y: number } | null>(null)
   const dragDelta = useRef(0)
@@ -175,6 +189,7 @@ export default function FixturesClient({
       predicted_home: home,
       predicted_away: away,
       predicted_result: result,
+      predicted_scorer: inputScorers[current.id] || null,
     }, { onConflict: 'user_id,fixture_id' }).select().single()
 
     setSaving(false)
@@ -197,6 +212,11 @@ export default function FixturesClient({
 
     setPredicted(p => {
       const updated = { ...p }
+      delete updated[fixtureId]
+      return updated
+    })
+    setInputScorers(s => {
+      const updated = { ...s }
       delete updated[fixtureId]
       return updated
     })
@@ -236,7 +256,10 @@ export default function FixturesClient({
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   {pred ? (
-                    <p style={{ fontSize: '14px', color: '#888' }}>{pred.predicted_home} — {pred.predicted_away}</p>
+                    <div>
+                      <p style={{ fontSize: '14px', color: '#888' }}>{pred.predicted_home} — {pred.predicted_away}</p>
+                      {pred.predicted_scorer && <p style={{ fontSize: '10px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>({pred.predicted_scorer})</p>}
+                    </div>
                   ) : locked ? (
                     <p style={{ fontSize: '11px', color: '#444' }}>locked</p>
                   ) : (
@@ -269,7 +292,12 @@ export default function FixturesClient({
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <p style={{ fontSize: '16px', fontWeight: 700 }}>{f.home_score} — {f.away_score}</p>
-                      {pred && <p style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>you: {pred.predicted_home} — {pred.predicted_away}</p>}
+                      {pred && (
+                        <p style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
+                          you: {pred.predicted_home} — {pred.predicted_away}
+                          {pred.predicted_scorer && <span style={{ fontStyle: 'italic' }}> ({pred.predicted_scorer})</span>}
+                        </p>
+                      )}
                     </div>
                     <div style={{ textAlign: 'left' }}>
                       <p style={{ fontSize: '18px' }}>{getFlag(f.away_team)}</p>
@@ -373,8 +401,29 @@ export default function FixturesClient({
                   <p style={{ fontSize: '24px', fontWeight: 800 }}>
                     {predicted[current.id].predicted_home} — {predicted[current.id].predicted_away}
                   </p>
+                  {predicted[current.id].predicted_scorer && (
+                    <p style={{ fontSize: '13px', color: '#888', marginTop: '4px', fontStyle: 'italic' }}>
+                      scorer: {predicted[current.id].predicted_scorer}
+                    </p>
+                  )}
                   <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '12px' }}>
-                    <button onClick={() => setShowInput(true)} style={{ fontSize: '13px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button
+                      onClick={() => {
+                        setInputScores(s => ({
+                          ...s,
+                          [current.id]: {
+                            home: String(predicted[current.id].predicted_home),
+                            away: String(predicted[current.id].predicted_away)
+                          }
+                        }))
+                        setInputScorers(s => ({
+                          ...s,
+                          [current.id]: predicted[current.id].predicted_scorer || ''
+                        }))
+                        setShowInput(true)
+                      }}
+                      style={{ fontSize: '13px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+                    >
                       edit
                     </button>
                     <button onClick={() => deletePrediction(current.id)} style={{ fontSize: '13px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -384,7 +433,7 @@ export default function FixturesClient({
                 </div>
               ) : showInput ? (
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
                     <input
                       type="number" min="0" max="20"
                       value={inputScores[current.id]?.home ?? ''}
@@ -416,6 +465,73 @@ export default function FixturesClient({
                       }}
                     />
                   </div>
+
+                  {/* Searchable Player Scorer Input */}
+                  <div 
+                    onClick={e => e.stopPropagation()}
+                    style={{ position: 'relative', width: '100%', maxWidth: '240px', margin: '0 auto 20px' }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="predict goalscorer (opt)"
+                      value={inputScorers[current.id] || ''}
+                      onFocus={() => setShowScorerList(true)}
+                      onChange={e => {
+                        setInputScorers(s => ({ ...s, [current.id]: e.target.value }))
+                        setShowScorerList(true)
+                      }}
+                      onMouseDown={e => e.stopPropagation()}
+                      onTouchStart={e => e.stopPropagation()}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        backgroundColor: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '100px',
+                        color: '#e8e8e8',
+                        fontSize: '13px',
+                        fontFamily: 'inherit',
+                        textAlign: 'center',
+                      }}
+                    />
+                    {showScorerList && [...(current.home_team ? (playersData[current.home_team] || []) : []), ...(current.away_team ? (playersData[current.away_team] || []) : [])].length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '100%', left: 0, right: 0,
+                        maxHeight: '180px', overflowY: 'auto',
+                        backgroundColor: '#111', border: '1px solid #222',
+                        borderRadius: '12px', zIndex: 100, marginBottom: '8px',
+                        textAlign: 'left',
+                      }}>
+                        {[...(current.home_team ? (playersData[current.home_team] || []) : []), ...(current.away_team ? (playersData[current.away_team] || []) : [])]
+                          .sort()
+                          .filter(p => p.toLowerCase().includes((inputScorers[current.id] || '').toLowerCase()))
+                          .slice(0, 10)
+                          .map(player => (
+                            <div
+                              key={player}
+                              onClick={() => {
+                                setInputScorers(s => ({ ...s, [current.id]: player }))
+                                setShowScorerList(false)
+                              }}
+                              onMouseDown={e => e.stopPropagation()}
+                              onTouchStart={e => e.stopPropagation()}
+                              style={{
+                                padding: '10px 16px',
+                                fontSize: '13px',
+                                color: '#ccc',
+                                cursor: 'pointer',
+                                borderBottom: '1px solid #1a1a1a',
+                              }}
+                            >
+                              {player}
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={savePrediction}
                     onMouseDown={e => e.stopPropagation()}
