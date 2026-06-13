@@ -50,7 +50,7 @@ const FLAGS: Record<string, string> = {
   'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Norway': '🇳🇴', 'Sweden': '🇸🇪',
   'Russia': '🇷🇺', 'China': '🇨🇳', 'Thailand': '🇹🇭',
   'Vietnam': '🇻🇳', 'Kazakhstan': '🇰🇿', 'Azerbaijan': '🇦🇿',
-  'Ivory Coast': '🇨🇮'
+  'Ivory Coast': '🇨🇮', 'Cape Verde': '🇨🇻'
 }
 
 function formatIST(dateStr: string) {
