@@ -8,7 +8,7 @@ ALTER TABLE public.fixtures ADD COLUMN IF NOT EXISTS scorers text[];
 -- 3. Add column to scores table to store bonus points
 ALTER TABLE public.scores ADD COLUMN IF NOT EXISTS scorer_pts int DEFAULT 0;
 
--- 4. Update the calculate_scores RPC function
+-- 4. Update the calculate_scores RPC function (with case-insensitive scorer checks)
 CREATE OR REPLACE FUNCTION public.calculate_scores(p_fixture_id uuid)
  RETURNS void
  LANGUAGE plpgsql
@@ -23,6 +23,12 @@ declare
   s_pts int; -- scorer points
   is_correct_winner boolean;
   one_team_goals_matched boolean;
+  
+  -- Case-insensitive check variables
+  all_match boolean;
+  p_scorer text;
+  f_scorer text;
+  found_match boolean;
 begin
   select * into fix from public.fixtures where id = p_fixture_id;
   if fix.status != 'finished' then return; end if;
@@ -55,10 +61,26 @@ begin
       g_pts := 2;
     end if;
 
-    -- 4. Scorer Prediction Bonus (All-or-Nothing Combo: +2 points per correct scorer, 0 total if any scorer is wrong)
+    -- 4. Scorer Prediction Bonus (All-or-Nothing Combo, case-insensitive)
     if pred.predicted_scorers is not null and array_length(pred.predicted_scorers, 1) > 0 and fix.scorers is not null then
-      -- If all predicted scorers are contained within the actual match scorers
-      if pred.predicted_scorers <@ fix.scorers then
+      all_match := true;
+      
+      foreach p_scorer in array pred.predicted_scorers loop
+        found_match := false;
+        foreach f_scorer in array fix.scorers loop
+          if lower(trim(p_scorer)) = lower(trim(f_scorer)) then
+            found_match := true;
+            exit;
+          end if;
+        end loop;
+        
+        if not found_match then
+          all_match := false;
+          exit;
+        end if;
+      end loop;
+      
+      if all_match then
         s_pts := array_length(pred.predicted_scorers, 1) * 2;
       end if;
     end if;
