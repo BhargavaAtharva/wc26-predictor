@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import Logo from './Logo'
 
 type LeaderboardEntry = {
@@ -10,29 +11,45 @@ type LeaderboardEntry = {
   correct_results: number
 }
 
+type Phase = {
+  key: string
+  label: string
+}
+
 export default function LeaderboardClient({
-  leaderboard,
+  phaseLeaderboards,
+  activePhases,
   currentUserId,
   hasFinishedMatches = false,
 }: {
-  leaderboard: LeaderboardEntry[]
+  phaseLeaderboards: Record<string, LeaderboardEntry[]>
+  activePhases: Phase[]
   currentUserId: string | null
   hasFinishedMatches?: boolean
 }) {
-  // 1. Sort leaderboard by: total_points DESC, exact_scores DESC, correct_results DESC
+  const [selectedPhase, setSelectedPhase] = useState(activePhases[0]?.key || 'overall')
+
+  const leaderboard = phaseLeaderboards[selectedPhase] || []
+
+  // Sort leaderboard by: total_points DESC, exact_scores DESC, correct_results DESC
   const sortedLeaderboard = [...leaderboard].sort((a, b) => {
     if (b.total_points !== a.total_points) return b.total_points - a.total_points
     if (b.exact_scores !== a.exact_scores) return b.exact_scores - a.exact_scores
     return b.correct_results - a.correct_results
   })
 
-  // 2. Standard Competition Ranking: 1 + number of users who have strictly more points
+  // Filter out users with 0 points for phase-specific views (not overall)
+  const displayLeaderboard = selectedPhase === 'overall'
+    ? sortedLeaderboard
+    : sortedLeaderboard.filter(e => e.total_points > 0)
+
+  // Standard Competition Ranking
   const getRank = (entry: LeaderboardEntry) => {
     if (!hasFinishedMatches) return 0
-    return sortedLeaderboard.filter(other => other.total_points > entry.total_points).length + 1
+    return displayLeaderboard.filter(other => other.total_points > entry.total_points).length + 1
   }
 
-  const currentUserEntry = sortedLeaderboard.find(e => e.user_id === currentUserId)
+  const currentUserEntry = displayLeaderboard.find(e => e.user_id === currentUserId)
   const currentUserRank = currentUserEntry ? getRank(currentUserEntry) : 0
 
   const medalColor = (rank: number) => {
@@ -142,19 +159,69 @@ export default function LeaderboardClient({
       fontFamily: 'inherit',
     }}>
       <div style={{
-  padding: 'clamp(16px, 4vw, 32px)',
-}}>
+        padding: 'clamp(16px, 4vw, 32px)',
+      }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <Logo />
           <a href="/fixtures" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>fixtures</a>
         </div>
 
-        {sortedLeaderboard.length === 0 ? (
+        {/* Phase selector pills */}
+        <div style={{
+          display: 'flex',
+          gap: '6px',
+          overflowX: 'auto',
+          paddingBottom: '4px',
+          marginBottom: '24px',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}>
+          {activePhases.map(phase => {
+            const isActive = phase.key === selectedPhase
+            return (
+              <button
+                key={phase.key}
+                onClick={() => setSelectedPhase(phase.key)}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 500,
+                  fontFamily: 'inherit',
+                  color: isActive ? '#0a0a0a' : '#888',
+                  backgroundColor: isActive ? '#e8e8e8' : '#111',
+                  border: isActive ? '1px solid #e8e8e8' : '1px solid #1f1f1f',
+                  borderRadius: '100px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {phase.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Phase label */}
+        <p style={{
+          fontSize: '11px',
+          color: '#444',
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+          marginBottom: '16px',
+          fontWeight: 600,
+        }}>
+          {activePhases.find(p => p.key === selectedPhase)?.label || 'overall'} standings
+        </p>
+
+        {displayLeaderboard.length === 0 ? (
           <p style={{ color: '#444', fontSize: '14px' }}>no predictions yet. be the first.</p>
         ) : (
           <div>
-            {sortedLeaderboard.map((entry) => (
+            {displayLeaderboard.map((entry) => (
               <Entry
                 key={entry.user_id}
                 entry={entry}
