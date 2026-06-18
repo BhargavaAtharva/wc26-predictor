@@ -124,53 +124,6 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* New feature notification banner */}
-        <div style={{
-          backgroundColor: 'rgba(212, 241, 92, 0.08)',
-          border: '1px solid rgba(212, 241, 92, 0.25)',
-          borderRadius: '16px',
-          padding: '16px 20px',
-          marginBottom: '32px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '16px',
-          flexWrap: 'wrap',
-        }}>
-          <div>
-            <span style={{
-              fontSize: '9px',
-              fontWeight: 800,
-              backgroundColor: '#d4f15c',
-              color: '#0a0a0a',
-              padding: '3px 6px',
-              borderRadius: '4px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginRight: '8px',
-              verticalAlign: 'middle',
-            }}>
-              new
-            </span>
-            <span style={{ fontSize: '13px', color: '#e8e8e8', fontWeight: 500, verticalAlign: 'middle' }}>
-              Goalscorer Combo Predictions are live! Add players to your prediction card for high-risk bonus points.
-            </span>
-          </div>
-          <a 
-            href="/rules" 
-            style={{ 
-              fontSize: '12px', 
-              color: '#d4f15c', 
-              fontWeight: 600, 
-              textDecoration: 'none',
-              borderBottom: '1px solid rgba(212, 241, 92, 0.4)',
-              paddingBottom: '1px',
-            }}
-          >
-            check rules →
-          </a>
-        </div>
-
         <p style={{ fontSize: '13px', color: '#555', marginBottom: '8px' }}>
           hey {firstName}
         </p>
