@@ -71,14 +71,10 @@ export default function FixturesClient({
   fixtures,
   predictions: initialPredictions,
   userId,
-  predictionCounts = {},
-  totalUsers = 0,
 }: {
   fixtures: Fixture[]
   predictions: Prediction[]
   userId: string
-  predictionCounts?: Record<string, number>
-  totalUsers?: number
 }) {
   const supabase = createClient()
 
@@ -302,21 +298,12 @@ export default function FixturesClient({
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <p style={{ fontSize: '16px', fontWeight: 700 }}>{f.home_score} — {f.away_score}</p>
-                      {pred ? (
+                      {pred && (
                         <p style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
                           you: {pred.predicted_home} — {pred.predicted_away}
                           {pred.predicted_scorers && pred.predicted_scorers.length > 0 && (
                             <span style={{ fontStyle: 'italic' }}> ({pred.predicted_scorers.join(', ')})</span>
                           )}
-                        </p>
-                      ) : (
-                        <p style={{ fontSize: '10px', color: '#f87171', marginTop: '2px', fontStyle: 'italic' }}>
-                          you didn't predict
-                        </p>
-                      )}
-                      {totalUsers > 0 && (
-                        <p style={{ fontSize: '9px', color: '#444', marginTop: '3px' }}>
-                          {predictionCounts[f.id] || 0} of {totalUsers} predicted
                         </p>
                       )}
                     </div>
