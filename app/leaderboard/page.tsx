@@ -56,12 +56,23 @@ export default async function LeaderboardPage() {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Fetch user's current rivalries for the rival button state
+  let initialRivalIds: string[] = []
+  if (user) {
+    const { data: rivalries } = await supabase
+      .from('rivalries')
+      .select('rival_id')
+      .eq('user_id', user.id)
+    initialRivalIds = rivalries?.map(r => r.rival_id) || []
+  }
+
   return (
     <LeaderboardClient
       phaseLeaderboards={phaseLeaderboards}
       activePhases={activePhases}
       currentUserId={user?.id || null}
       hasFinishedMatches={hasFinishedMatches}
+      initialRivalIds={initialRivalIds}
     />
   )
 }

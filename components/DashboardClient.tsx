@@ -57,6 +57,13 @@ type Profile = {
   avatar_url: string
 }
 
+type RivalData = {
+  user_id: string
+  display_name: string
+  avatar_url: string
+  total_points: number
+}
+
 export default function DashboardClient({
   profile,
   rank,
@@ -66,6 +73,10 @@ export default function DashboardClient({
   totalUsers,
   upcomingFixtures,
   predictedIds,
+  streak,
+  bestStreak,
+  totalMatchdays,
+  rivals,
 }: {
   profile: Profile
   rank: number
@@ -75,6 +86,10 @@ export default function DashboardClient({
   totalUsers: number
   upcomingFixtures: Fixture[]
   predictedIds: Set<string>
+  streak: number
+  bestStreak: number
+  totalMatchdays: number
+  rivals: RivalData[]
 }) {
   const supabase = createClient()
 
@@ -169,9 +184,10 @@ export default function DashboardClient({
           {rank > 0 ? `you're #${rank}` : 'make your picks'}
         </h1>
 
+        {/* Stats grid — now includes streak */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
           gap: '12px',
           marginBottom: '48px',
         }}>
@@ -191,8 +207,108 @@ export default function DashboardClient({
               <p style={{ fontSize: '11px', color: '#444', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{stat.label}</p>
             </div>
           ))}
+
+          {/* Streak card — special styling */}
+          <div style={{
+            backgroundColor: streak > 0 ? 'rgba(251, 146, 60, 0.08)' : '#111',
+            border: streak > 0 ? '1px solid rgba(251, 146, 60, 0.25)' : '1px solid #1a1a1a',
+            borderRadius: '12px',
+            padding: '20px 16px',
+          }}>
+            <p style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {streak > 0 ? `${streak}🔥` : '0'}
+            </p>
+            <p style={{ fontSize: '11px', color: '#444', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              streak
+            </p>
+            {totalMatchdays > 0 && (
+              <p style={{ fontSize: '10px', color: '#555', marginTop: '4px' }}>
+                {streak}/{totalMatchdays} days · best: {bestStreak}
+              </p>
+            )}
+          </div>
         </div>
 
+        {/* Rivalries section */}
+        {rivals.length > 0 && (
+          <div style={{ marginBottom: '48px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <p style={{
+                fontSize: '11px', color: '#555',
+                letterSpacing: '0.2em', textTransform: 'uppercase',
+                fontWeight: 600,
+              }}>
+                ⚔️ rivalries
+              </p>
+              <a href="/leaderboard" style={{ fontSize: '11px', color: '#555', textDecoration: 'none' }}>
+                manage →
+              </a>
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
+            }}>
+              {rivals.map(rival => {
+                const diff = totalPoints - rival.total_points
+                const isAhead = diff > 0
+                const isTied = diff === 0
+                return (
+                  <a key={rival.user_id} href={`/profile/${rival.user_id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      backgroundColor: '#111',
+                      border: '1px solid #1f1f1f',
+                      borderRadius: '12px',
+                      padding: '16px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                        <div style={{
+                          width: '28px', height: '28px', borderRadius: '50%',
+                          overflow: 'hidden', backgroundColor: '#1a1a1a', flexShrink: 0,
+                        }}>
+                          {rival.avatar_url ? (
+                            <img src={rival.avatar_url} alt={rival.display_name} referrerPolicy="no-referrer"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{
+                              width: '100%', height: '100%', display: 'flex',
+                              alignItems: 'center', justifyContent: 'center',
+                              fontSize: '11px', fontWeight: 700, color: '#555',
+                            }}>
+                              {rival.display_name?.[0]?.toUpperCase() || '?'}
+                            </div>
+                          )}
+                        </div>
+                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#ccc' }}>
+                          vs {rival.display_name?.split(' ')[0] || 'anonymous'}
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <div>
+                          <p style={{ fontSize: '20px', fontWeight: 800, color: '#e8e8e8' }}>{totalPoints}</p>
+                          <p style={{ fontSize: '10px', color: '#444' }}>you</p>
+                        </div>
+                        <p style={{
+                          fontSize: '11px', fontWeight: 700,
+                          color: isTied ? '#888' : isAhead ? '#4ade80' : '#f87171',
+                        }}>
+                          {isTied ? 'tied' : isAhead ? `+${diff} ahead` : `${diff} behind`}
+                        </p>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '20px', fontWeight: 800, color: '#888' }}>{rival.total_points}</p>
+                          <p style={{ fontSize: '10px', color: '#444' }}>them</p>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Quick links — updated to include rivalry CTA if no rivals */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
@@ -201,7 +317,7 @@ export default function DashboardClient({
         }}>
           {[
             { label: 'fixtures', href: '/fixtures', desc: 'predict matches' },
-            { label: 'leaderboard', href: '/leaderboard', desc: 'see rankings' },
+            { label: 'leaderboard', href: '/leaderboard', desc: rivals.length === 0 ? 'add rivals ⚔️' : 'see rankings' },
             { label: 'rules', href: '/rules', desc: 'how points work' },
             { label: 'profile', href: `/profile/${profile?.id}`, desc: 'your history' },
           ].map(link => (
