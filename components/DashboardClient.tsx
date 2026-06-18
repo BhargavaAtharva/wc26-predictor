@@ -62,6 +62,7 @@ type RivalData = {
   display_name: string
   avatar_url: string
   total_points: number
+  rank: number
 }
 
 export default function DashboardClient({
@@ -234,13 +235,16 @@ export default function DashboardClient({
                         </div>
                         <p style={{ fontSize: '13px', fontWeight: 600, color: '#ccc' }}>
                           vs {rival.display_name?.split(' ')[0] || 'anonymous'}
+                          {rival.rank > 0 && (
+                            <span style={{ fontSize: '11px', color: '#555', fontWeight: 500, marginLeft: '6px' }}>#{rival.rank}</span>
+                          )}
                         </p>
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <div>
                           <p style={{ fontSize: '20px', fontWeight: 800, color: '#e8e8e8' }}>{totalPoints}</p>
-                          <p style={{ fontSize: '10px', color: '#444' }}>you</p>
+                          <p style={{ fontSize: '10px', color: '#444' }}>you · #{rank}</p>
                         </div>
                         <p style={{
                           fontSize: '11px', fontWeight: 700,
@@ -250,7 +254,7 @@ export default function DashboardClient({
                         </p>
                         <div style={{ textAlign: 'right' }}>
                           <p style={{ fontSize: '20px', fontWeight: 800, color: '#888' }}>{rival.total_points}</p>
-                          <p style={{ fontSize: '10px', color: '#444' }}>them</p>
+                          <p style={{ fontSize: '10px', color: '#444' }}>them · #{rival.rank}</p>
                         </div>
                       </div>
                     </div>

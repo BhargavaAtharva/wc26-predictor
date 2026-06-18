@@ -102,12 +102,18 @@ export default async function DashboardPage() {
   const rivalData = leaderboard
     ? leaderboard
         .filter(e => rivalIds.includes(e.user_id))
-        .map(e => ({
-          user_id: e.user_id,
-          display_name: e.display_name,
-          avatar_url: e.avatar_url,
-          total_points: e.total_points,
-        }))
+        .map(e => {
+          const rivalRank = hasFinishedMatches
+            ? leaderboard.filter(o => o.total_points > e.total_points).length + 1
+            : 0
+          return {
+            user_id: e.user_id,
+            display_name: e.display_name,
+            avatar_url: e.avatar_url,
+            total_points: e.total_points,
+            rank: rivalRank,
+          }
+        })
     : []
 
   return (
