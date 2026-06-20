@@ -2,16 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import Logo from './Logo'
+import HoloBackground from './holo/HoloBackground'
+import Silhouette from './holo/Silhouette'
 
 type Profile = {
   id: string
 }
 
-export default function RulesClient({
-  profile,
-}: {
-  profile: Profile | null
-}) {
+type Pose = 'kick' | 'run' | 'celebrate' | 'header'
+
+// scoring tiers as holographic "records" figures (cricket-scoreboard style, but football)
+const TIERS: {
+  pts: string
+  title: string
+  desc: string
+  pose: Pose
+  size: number
+  color: string
+}[] = [
+  { pts: '7', title: 'exact score', desc: 'predict 2-1, it ends 2-1. pure perfection.', pose: 'celebrate', size: 168, color: '#2ee6e6' },
+  { pts: '5', title: 'result + goals', desc: "correct winner & one team's exact goals.", pose: 'kick', size: 150, color: '#38bdf8' },
+  { pts: '4', title: 'correct result', desc: 'right winner, goals off.', pose: 'run', size: 134, color: '#34d399' },
+  { pts: '2', title: 'goal consolation', desc: "wrong winner, but one team's goals nailed.", pose: 'header', size: 120, color: '#7fb6ff' },
+  { pts: '+2', title: 'scorer combo', desc: 'per correct scorer — all or nothing.', pose: 'celebrate', size: 132, color: '#9b8cff' },
+]
+
+export default function RulesClient({ profile }: { profile: Profile | null }) {
   // Simulator State
   const [predHome, setPredHome] = useState<number | ''>(2)
   const [predAway, setPredAway] = useState<number | ''>(1)
@@ -22,7 +38,6 @@ export default function RulesClient({
   const [explanation, setExplanation] = useState<string>('')
   const [badgeText, setBadgeText] = useState<string>('')
 
-  // Calculate simulated points
   useEffect(() => {
     const ph = predHome === '' ? 0 : Number(predHome)
     const pa = predAway === '' ? 0 : Number(predAway)
@@ -36,273 +51,185 @@ export default function RulesClient({
     const oneTeamGoalsMatched = ph === ah || pa === aa
 
     if (ph === ah && pa === aa) {
-      setPoints(7)
-      setBadgeText('exact score')
+      setPoints(7); setBadgeText('exact score')
       setExplanation("you predicted the exact score. absolute legend behavior.")
     } else if (isCorrectWinner) {
       if (oneTeamGoalsMatched) {
-        setPoints(5)
-        setBadgeText('result + goals')
-        setExplanation("you got the correct result (win/draw/loss) and got one of the team's exact goal tallies right.")
+        setPoints(5); setBadgeText('result + goals')
+        setExplanation("correct result (win/draw/loss) and one team's exact goal tally right.")
       } else {
-        setPoints(4)
-        setBadgeText('correct result')
-        setExplanation("you got the correct result (win/draw/loss) but missed on individual team scores.")
+        setPoints(4); setBadgeText('correct result')
+        setExplanation("correct result (win/draw/loss) but missed on individual team scores.")
       }
     } else if (oneTeamGoalsMatched) {
-      setPoints(2)
-      setBadgeText('goal match consolation')
-      setExplanation("you got the winner wrong, but at least you predicted one team's goals exactly.")
+      setPoints(2); setBadgeText('goal match consolation')
+      setExplanation("winner wrong, but you predicted one team's goals exactly.")
     } else {
-      setPoints(0)
-      setBadgeText('miss')
+      setPoints(0); setBadgeText('miss')
       setExplanation("unlucky. neither the winner nor any of the team goals matched up.")
     }
   }, [predHome, predAway, actualHome, actualAway])
 
+  // reveal-on-scroll for the holographic figures
+  const [revealed, setRevealed] = useState<Set<number>>(new Set())
+  useEffect(() => {
+    const els = document.querySelectorAll('[data-tier]')
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) {
+          const i = Number((e.target as HTMLElement).dataset.tier)
+          setRevealed(prev => new Set(prev).add(i))
+        }
+      }),
+      { threshold: 0.25 }
+    )
+    els.forEach(el => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+
+  const inputStyle: React.CSSProperties = {
+    width: '60px', height: '60px', borderRadius: '12px',
+    textAlign: 'center', fontSize: '24px', fontWeight: 700, color: '#fff',
+  }
+
   return (
-    <main style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0a',
-      color: '#e8e8e8',
-      fontFamily: 'inherit',
-    }}>
-      <div style={{
-        padding: 'clamp(16px, 4vw, 32px)',
-        maxWidth: '800px',
-        margin: '0 auto',
-      }}>
+    <main style={{ minHeight: '100vh', position: 'relative', color: '#e8f4ff', fontFamily: 'inherit' }}>
+      <HoloBackground stadiumOpacity={0.3} />
+
+      <div className="holo-content" style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '960px', margin: '0 auto' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '48px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '36px' }}>
           <Logo />
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {profile ? (
-              <a href="/dashboard" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>dashboard</a>
+              <a href="/dashboard" className="holo-link" style={{ fontSize: '14px' }}>dashboard</a>
             ) : (
-              <a href="/" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>home</a>
+              <a href="/" className="holo-link" style={{ fontSize: '14px' }}>home</a>
             )}
           </div>
         </div>
 
-        {/* Title */}
-        <p style={{ fontSize: '13px', color: '#555', marginBottom: '8px' }}>rules of the game</p>
-        <h1 style={{
-          fontSize: 'clamp(2rem, 6vw, 3.5rem)',
-          fontWeight: 800,
-          letterSpacing: '-0.03em',
-          marginBottom: '24px',
-          lineHeight: 1,
+        {/* Scoreboard sign — the "records board" */}
+        <div className="holo-panel holo-corners" style={{
+          padding: 'clamp(18px, 4vw, 30px)',
+          marginBottom: '36px',
+          borderColor: 'rgba(46,230,230,0.4)',
         }}>
-          how you score.
-        </h1>
-        <p style={{ fontSize: '15px', color: '#888', marginBottom: '40px', lineHeight: 1.6, maxWidth: '600px' }}>
-          we don't do boring scoring. here's how we rank your predictions. you get points based on result direction, goal accuracy, and exact matchups.
-        </p>
-
-        {/* Rules Cards Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '16px',
-          marginBottom: '48px',
-        }}>
-          {[
-            { pts: 7, title: 'exact score', desc: 'you predict 2-1, it ends 2-1. pure perfection.', badge: 'max points' },
-            { pts: 5, title: 'result + goals', desc: 'you predict 2-0, it ends 2-1. correct winner & one team\'s score matches.', badge: 'half perfect' },
-            { pts: 4, title: 'correct result', desc: 'you predict 1-0, it ends 3-1. correct winner but no goals match.', badge: 'decent pick' },
-            { pts: 2, title: 'goal match consolation', desc: 'you predict 2-1, it ends 0-1. wrong winner, but you nailed the away goals.', badge: 'consolation' },
-            { pts: '+2/scorer', title: 'goalscorer combo', desc: 'predict 1 or more goalscorers. if ALL of them score, get +2 per player. if even one misses, you get 0 bonus.', badge: 'new bonus' }
-          ].map(rule => (
-            <div key={rule.title} style={{
-              backgroundColor: '#111',
-              border: '1px solid #1a1a1a',
-              borderRadius: '16px',
-              padding: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '16px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>{rule.title}</h3>
-                  <span style={{ fontSize: '10px', color: '#555', border: '1px solid #222', borderRadius: '100px', padding: '2px 8px', textTransform: 'lowercase' }}>{rule.badge}</span>
-                </div>
-                <p style={{ fontSize: '13px', color: '#666', lineHeight: 1.5 }}>{rule.desc}</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span style={{ fontSize: '30px', fontWeight: 800, color: '#d4f15c', lineHeight: 1 }}>
-                  {typeof rule.pts === 'number' ? `+${rule.pts}` : rule.pts}
-                </span>
-                <span style={{ fontSize: '11px', color: '#444', textTransform: 'lowercase' }}>points</span>
-              </div>
-            </div>
-          ))}
+          <p className="holo-text-emerald" style={{ fontSize: '12px', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '10px' }}>
+            rules of the game
+          </p>
+          <h1 className="holo-text" style={{
+            fontSize: 'clamp(2rem, 6vw, 3.5rem)', fontWeight: 800,
+            letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '16px',
+          }}>
+            how you score.
+          </h1>
+          <p style={{ fontSize: '15px', color: '#8fb6d4', lineHeight: 1.6, maxWidth: '600px' }}>
+            we don&apos;t do boring scoring. here&apos;s how we rank your predictions. you get points based on result direction, goal accuracy, and exact matchups.
+          </p>
         </div>
 
-        {/* Interactive Simulator Section */}
-        <div style={{
-          backgroundColor: '#111',
-          border: '1px solid #1a1a1a',
-          borderRadius: '24px',
-          padding: 'clamp(20px, 5vw, 36px)',
-          marginBottom: '48px',
-        }}>
-          <p style={{ fontSize: '11px', color: '#555', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', fontWeight: 600 }}>
+        {/* Scrollable holographic figure lineup */}
+        <p className="holo-dim anim-pulse" style={{ fontSize: '12px', marginBottom: '10px' }}>↔ scroll the lineup</p>
+        <div
+          style={{
+            display: 'flex', gap: 'clamp(16px, 4vw, 40px)', alignItems: 'flex-start',
+            overflowX: 'auto', padding: '12px 4px 28px',
+            borderBottom: '1px solid rgba(46,230,230,0.15)',
+            marginBottom: '48px',
+            scrollSnapType: 'x mandatory',
+          }}
+        >
+          {TIERS.map((tier, i) => {
+            const show = revealed.has(i)
+            return (
+              <div
+                key={tier.title}
+                data-tier={i}
+                style={{
+                  flex: '0 0 auto', textAlign: 'center', scrollSnapAlign: 'center',
+                  opacity: show ? 1 : 0,
+                  transform: show ? 'translateY(0)' : 'translateY(30px)',
+                  transition: `opacity 0.6s ease ${i * 0.05}s, transform 0.6s ease ${i * 0.05}s`,
+                }}
+              >
+                <div className="anim-float" style={{ display: 'flex', justifyContent: 'center', height: '190px', alignItems: 'flex-end' }}>
+                  <Silhouette pose={tier.pose} size={150} color={tier.color} />
+                </div>
+                <p style={{ fontSize: `clamp(40px, 9vw, 64px)`, fontWeight: 800, color: tier.color, lineHeight: 1, marginTop: '6px' }}>
+                  {tier.pts}
+                </p>
+                <p className="holo-text" style={{ fontSize: '14px', fontWeight: 700, textTransform: 'lowercase', marginTop: '6px' }}>{tier.title}</p>
+                <p style={{ fontSize: '11px', color: '#6f93b0', maxWidth: '180px', margin: '4px auto 0', lineHeight: 1.4 }}>{tier.desc}</p>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Interactive Simulator */}
+        <div className="holo-panel holo-corners" style={{ padding: 'clamp(20px, 5vw, 36px)', marginBottom: '48px' }}>
+          <p className="holo-text-emerald" style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', fontWeight: 600 }}>
             interactive simulator
           </p>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
-            alignItems: 'center',
-            gap: '24px',
-            marginBottom: '32px'
-          }}>
-            {/* Prediction Input */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 'clamp(12px, 4vw, 24px)', marginBottom: '32px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-              <p style={{ fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>your prediction</p>
+              <p className="holo-dim" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>your prediction</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="number"
-                  min="0"
-                  max="99"
-                  value={predHome}
+                <input type="number" min="0" max="99" value={predHome}
                   onChange={e => setPredHome(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: '#161616',
-                    border: '1px solid #222',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    fontSize: '24px',
-                    fontWeight: 700,
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
-                />
-                <span style={{ color: '#444', fontWeight: 700 }}>:</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="99"
-                  value={predAway}
+                  className="holo-input" style={inputStyle} />
+                <span className="holo-dim" style={{ fontWeight: 700 }}>:</span>
+                <input type="number" min="0" max="99" value={predAway}
                   onChange={e => setPredAway(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: '#161616',
-                    border: '1px solid #222',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    fontSize: '24px',
-                    fontWeight: 700,
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
-                />
+                  className="holo-input" style={inputStyle} />
               </div>
             </div>
 
-            <div style={{ color: '#333', fontSize: '14px', fontWeight: 700, marginTop: '20px' }}>vs</div>
+            <div className="holo-dim" style={{ fontSize: '14px', fontWeight: 700, marginTop: '20px' }}>vs</div>
 
-            {/* Actual Result Input */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-              <p style={{ fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>actual score</p>
+              <p className="holo-dim" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>actual score</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="number"
-                  min="0"
-                  max="99"
-                  value={actualHome}
+                <input type="number" min="0" max="99" value={actualHome}
                   onChange={e => setActualHome(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: '#161616',
-                    border: '1px solid #222',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    fontSize: '24px',
-                    fontWeight: 700,
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
-                />
-                <span style={{ color: '#444', fontWeight: 700 }}>:</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="99"
-                  value={actualAway}
+                  className="holo-input" style={inputStyle} />
+                <span className="holo-dim" style={{ fontWeight: 700 }}>:</span>
+                <input type="number" min="0" max="99" value={actualAway}
                   onChange={e => setActualAway(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: '#161616',
-                    border: '1px solid #222',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    fontSize: '24px',
-                    fontWeight: 700,
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
-                />
+                  className="holo-input" style={inputStyle} />
               </div>
             </div>
           </div>
 
-          {/* Simulator Result Output */}
           <div style={{
-            backgroundColor: '#161616',
-            border: '1px solid #222',
-            borderRadius: '16px',
-            padding: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '24px',
-            flexWrap: 'wrap'
+            background: 'rgba(5,12,24,0.5)', border: '1px solid rgba(56,189,248,0.2)',
+            borderRadius: '16px', padding: '24px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: '24px', flexWrap: 'wrap',
           }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <span style={{
                   fontSize: '10px',
-                  backgroundColor: points > 0 ? 'rgba(212, 241, 92, 0.1)' : '#222',
-                  color: points > 0 ? '#d4f15c' : '#888',
-                  padding: '3px 10px',
-                  borderRadius: '100px',
-                  fontWeight: 600,
-                  textTransform: 'lowercase',
-                  border: points > 0 ? '1px solid rgba(212, 241, 92, 0.2)' : '1px solid #333'
+                  background: points > 0 ? 'rgba(46,230,230,0.12)' : 'rgba(8,16,30,0.6)',
+                  color: points > 0 ? '#9bfdfd' : '#7fa6c4',
+                  padding: '3px 10px', borderRadius: '100px', fontWeight: 600, textTransform: 'lowercase',
+                  border: points > 0 ? '1px solid rgba(46,230,230,0.4)' : '1px solid rgba(56,189,248,0.2)',
                 }}>
                   {badgeText}
                 </span>
               </div>
-              <p style={{ fontSize: '13px', color: '#888', lineHeight: 1.5 }}>
-                {explanation}
-              </p>
+              <p style={{ fontSize: '13px', color: '#8fb6d4', lineHeight: 1.5 }}>{explanation}</p>
             </div>
-            
+
             <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: points > 0 ? '#d4f15c' : '#222',
-              color: points > 0 ? '#0a0a0a' : '#555',
-              width: '80px',
-              height: '80px',
-              borderRadius: '20px',
-              transition: 'all 0.2s ease'
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              background: points > 0 ? 'linear-gradient(180deg, #2ee6e6, #1aa8c4)' : 'rgba(8,16,30,0.6)',
+              color: points > 0 ? '#04222a' : '#4a627d',
+              width: '80px', height: '80px', borderRadius: '20px',
+              boxShadow: points > 0 ? 'none' : 'none',
+              transition: 'all 0.2s ease',
             }}>
               <span style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1 }}>+{points}</span>
               <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'lowercase' }}>pts</span>
@@ -310,11 +237,8 @@ export default function RulesClient({
           </div>
         </div>
 
-        {/* Footer info */}
         <div style={{ textAlign: 'center', paddingBottom: '32px' }}>
-          <p style={{ fontSize: '11px', color: '#333' }}>
-            built for the 2026 world cup. make good picks.
-          </p>
+          <p className="holo-dim" style={{ fontSize: '11px' }}>built for the 2026 world cup. make good picks.</p>
         </div>
       </div>
     </main>

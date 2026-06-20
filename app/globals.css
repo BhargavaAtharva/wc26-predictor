@@ -6,27 +6,316 @@
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 
-  --color-background: #0a0a0a;
-  --color-surface: #111111;
-  --color-border: #1f1f1f;
-  --color-muted: #3a3a3a;
-  --color-subtle: #6b6b6b;
-  --color-primary: #e8e8e8;
-  --color-accent: #d4f15c;
+  /* base surfaces — deep stadium night */
+  --color-background: #05080f;
+  --color-surface: rgba(14, 24, 40, 0.55);
+  --color-border: rgba(56, 189, 248, 0.18);
+  --color-muted: #3a4a63;
+  --color-subtle: #6b8099;
+  --color-primary: #e8f4ff;
+
+  /* holographic accents */
+  --color-accent: #2ee6e6;      /* cyan */
+  --color-accent-2: #34d399;    /* emerald */
+  --color-accent-3: #38bdf8;    /* sky */
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-body {
-  background-color: #0a0a0a;
-  color: #e8e8e8;
+html, body {
+  background-color: #05080f;
+  color: #e8f4ff;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
-* {
-  -webkit-tap-highlight-color: transparent;
+
+/* ===========================================================
+   HOLOGRAPHIC DESIGN SYSTEM
+   =========================================================== */
+
+/* --- text --- */
+.holo-text {
+  color: #ffffff;
+}
+.holo-text-emerald {
+  color: #c7ffe9;
+}
+.holo-dim {
+  color: #7fa6c4;
+}
+
+/* --- glass / translucent panels --- */
+.holo-panel {
+  background: linear-gradient(160deg, rgba(20, 38, 64, 0.55), rgba(8, 16, 30, 0.4));
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 18px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+.holo-panel-emerald {
+  background: linear-gradient(160deg, rgba(16, 54, 46, 0.5), rgba(8, 24, 22, 0.38));
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* corner ticks for HUD feel */
+.holo-corners { position: relative; }
+.holo-corners::before,
+.holo-corners::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border-color: rgba(46, 230, 230, 0.6);
+  pointer-events: none;
+}
+.holo-corners::before { top: 8px; left: 8px; border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 4px; }
+.holo-corners::after  { bottom: 8px; right: 8px; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 4px; }
+
+/* pill / button */
+.holo-btn {
+  background: linear-gradient(180deg, rgba(46, 230, 230, 0.16), rgba(46, 230, 230, 0.06));
+  border: 1px solid rgba(46, 230, 230, 0.45);
+  color: #d4f6ff;
+  border-radius: 100px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.holo-btn:hover {
+  background: linear-gradient(180deg, rgba(46, 230, 230, 0.3), rgba(46, 230, 230, 0.1));
+}
+.holo-btn-solid {
+  background: linear-gradient(180deg, #2ee6e6, #1aa8c4);
+  border: none;
+  color: #04222a;
+  border-radius: 100px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.holo-btn-solid:hover { filter: brightness(1.08); }
+
+/* nav link */
+.holo-link {
+  color: #8fb6d4;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.holo-link:hover { color: #d4f6ff; }
+
+/* inputs */
+.holo-input {
+  background: rgba(5, 12, 24, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #e8f4ff;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.holo-input:focus {
+  border-color: rgba(46, 230, 230, 0.8);
+}
+
+/* ===========================================================
+   STADIUM BACKGROUND
+   =========================================================== */
+.stadium-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(46, 230, 230, 0.14), transparent 55%),
+    radial-gradient(80% 60% at 12% 0%, rgba(56, 189, 248, 0.12), transparent 50%),
+    radial-gradient(80% 60% at 88% 0%, rgba(52, 211, 153, 0.1), transparent 50%),
+    radial-gradient(140% 120% at 50% 120%, rgba(46, 230, 230, 0.08), transparent 60%),
+    linear-gradient(180deg, #060b16 0%, #04070f 60%, #02040a 100%);
+}
+
+/* stadium light flares */
+.stadium-bg::before {
+  content: '';
+  position: absolute;
+  top: -8%; left: 0; right: 0;
+  height: 40%;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.10), transparent 9%),
+    radial-gradient(circle at 40% 0%, rgba(255,255,255,0.08), transparent 8%),
+    radial-gradient(circle at 60% 0%, rgba(255,255,255,0.08), transparent 8%),
+    radial-gradient(circle at 80% 0%, rgba(255,255,255,0.10), transparent 9%);
+  filter: blur(2px);
+  animation: holo-flicker 6s ease-in-out infinite;
+}
+
+/* faint stadium scene layer */
+.stadium-scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* real stadium photo background — drop a photo at /public/stadium.jpg */
+.stadium-photo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/stadium.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* perspective neon grid floor */
+.holo-floor {
+  position: fixed;
+  left: 50%;
+  bottom: -10vh;
+  width: 220vw;
+  height: 60vh;
+  transform: translateX(-50%) perspective(60vh) rotateX(70deg);
+  transform-origin: bottom center;
+  background-image:
+    linear-gradient(rgba(46, 230, 230, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 230, 230, 0.35) 1px, transparent 1px);
+  background-size: 5vh 5vh;
+  -webkit-mask-image: linear-gradient(to top, #000 5%, transparent 80%);
+  mask-image: linear-gradient(to top, #000 5%, transparent 80%);
+  z-index: 0;
+  pointer-events: none;
+  animation: grid-scroll 4s linear infinite;
+}
+
+/* subtle scanline overlay */
+.holo-scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.015) 0px,
+    rgba(255, 255, 255, 0.015) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* page content sits above background */
+.holo-content { position: relative; z-index: 2; }
+
+/* ===========================================================
+   ANIMATIONS
+   =========================================================== */
+@keyframes holo-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes holo-float-slow {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-16px); }
+}
+@keyframes holo-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+@keyframes holo-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes holo-spin-rev {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+@keyframes grid-scroll {
+  from { background-position: 0 0; }
+  to   { background-position: 0 5vh; }
+}
+@keyframes holo-flicker {
+  0%, 100% { opacity: 1; }
+  48% { opacity: 0.85; }
+  50% { opacity: 0.6; }
+  52% { opacity: 0.9; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scan-down {
+  0%   { transform: translateY(-120%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+
+.anim-float      { animation: holo-float 4s ease-in-out infinite; }
+.anim-float-slow { animation: holo-float-slow 6s ease-in-out infinite; }
+.anim-pulse      { animation: holo-pulse 2.4s ease-in-out infinite; }
+.anim-fade-up    { animation: fade-up 0.6s ease both; }
+
+/* a sweeping scan line inside panels */
+.holo-scan-host { position: relative; overflow: hidden; }
+.holo-scan-host::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent, rgba(46, 230, 230, 0.12), transparent);
+  animation: scan-down 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* custom scrollbar for the holo theme */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(46, 230, 230, 0.3);
+  border-radius: 100px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(46, 230, 230, 0.55); }
+
+/* dashboard sidebar menu hover */
+.dash-menu-item { transition: color 0.2s ease, transform 0.2s ease; }
+.dash-menu-item:hover { color: #f5a623; transform: translateX(3px); }
+
+/* hero equaliser bars */
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.28); }
+  50%      { transform: scaleY(1); }
+}
+
+/* rivalry — swords being drawn (blades reveal via stroke-dashoffset) */
+@keyframes sword-draw {
+  from { stroke-dashoffset: 44; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes sword-flash {
+  0%   { opacity: 0; transform: scale(0.4); }
+  40%  { opacity: 0.9; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+
+/* flanking preview cards — only on wider screens */
+.holo-frame-side { display: none; }
+@media (min-width: 880px) {
+  .holo-frame-side { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-float, .anim-float-slow, .anim-pulse, .holo-floor,
+  .stadium-bg::before, .holo-scan-host::after { animation: none !important; }
 }

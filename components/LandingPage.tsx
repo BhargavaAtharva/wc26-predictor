@@ -1,8 +1,9 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useEffect, useState, useRef } from 'react'
-import Logo from './Logo'
+import { useEffect, useState } from 'react'
+import HoloBackground from './holo/HoloBackground'
+import Silhouette from './holo/Silhouette'
 
 export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const supabase = createClient()
@@ -71,26 +72,9 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
   if (phase === 'idle') {
     return (
-      <main
-        onClick={startExperience}
-        style={{
-          minHeight: '100vh',
-          backgroundColor: '#0a0a0a',
-          color: '#e8e8e8',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-        }}
-      >
-        <p style={{
-          fontSize: '13px',
-          color: '#444',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          fontFamily: 'inherit',
-        }}>
+      <main onClick={startExperience} style={{ minHeight: '100vh', position: 'relative', color: '#e8f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <HoloBackground stadiumOpacity={0.32} />
+        <p className="holo-text anim-pulse holo-content" style={{ fontSize: '13px', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
           tap to enter
         </p>
       </main>
@@ -99,35 +83,13 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
   if (phase === 'counting') {
     return (
-      <main style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0a0a',
-        color: '#e8e8e8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{
-            fontSize: 'clamp(5rem, 20vw, 14rem)',
-            fontWeight: 800,
-            lineHeight: 1,
-            letterSpacing: '-0.04em',
-            fontFamily: 'inherit',
-          }}>
+      <main style={{ minHeight: '100vh', position: 'relative', color: '#e8f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <HoloBackground stadiumOpacity={0.32} />
+        <div className="holo-content" style={{ textAlign: 'center' }}>
+          <p className="holo-text" style={{ fontSize: 'clamp(5rem, 20vw, 14rem)', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.04em' }}>
             {currentCount}
           </p>
-          <p style={{
-            fontSize: 'clamp(0.75rem, 2vw, 1rem)',
-            color: '#555',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            marginTop: '16px',
-            fontFamily: 'inherit',
-            opacity: labelVisible ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-          }}>
+          <p className="holo-dim" style={{ fontSize: 'clamp(0.75rem, 2vw, 1rem)', letterSpacing: '0.25em', textTransform: 'uppercase', marginTop: '16px', opacity: labelVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}>
             {stats[labelIndex].label}
           </p>
         </div>
@@ -136,107 +98,46 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
   }
 
   return (
-    <main
-      className="min-h-screen bg-[#0a0a0a] text-[#e8e8e8] flex flex-col justify-center"
-      style={{
-        padding: 'clamp(24px, 8vw, 96px)',
-        opacity: mainVisible ? 1 : 0,
-        transition: 'opacity 0.6s ease',
-      }}
-    >
-      <div style={{ maxWidth: '600px' }}>
+    <main style={{ minHeight: '100vh', position: 'relative', color: '#e8f4ff', fontFamily: 'inherit', display: 'flex', alignItems: 'center', overflow: 'hidden', opacity: mainVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}>
+      <HoloBackground stadiumOpacity={0.34} />
 
-        <p className="text-base text-[#bbb] mb-10 tracking-[0.15em] uppercase font-bold">
-          FIFA World Cup 2026
-        </p>
+      <div className="holo-content" style={{ width: '100%', maxWidth: '1040px', margin: '0 auto', padding: 'clamp(24px, 8vw, 80px)', display: 'flex', flexWrap: 'wrap', gap: 'clamp(24px, 5vw, 56px)', alignItems: 'center' }}>
 
-        <h1 style={{
-          fontSize: 'clamp(3.5rem, 8vw, 7.5rem)',
-          fontWeight: 800,
-          lineHeight: 0.95,
-          letterSpacing: '-0.03em',
-          marginBottom: '48px',
-        }}>
-          who you<br />got?
-        </h1>
+        {/* text block — kept simple, lowercase, like the original */}
+        <div style={{ flex: '1 1 380px', maxWidth: '560px' }}>
+          <p className="holo-text-emerald" style={{ fontSize: '14px', marginBottom: '36px', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
+            FIFA World Cup 2026
+          </p>
 
-        <p style={{
-          fontSize: '15px',
-          color: '#6b6b6b',
-          marginBottom: '56px',
-        }}>
-          so no one lies about their predictions
-        </p>
+          <h1 style={{ fontSize: 'clamp(3.5rem, 8vw, 7.5rem)', fontWeight: 800, lineHeight: 0.95, letterSpacing: '-0.03em', marginBottom: '40px', color: '#fff' }}>
+            who you<br />got?
+          </h1>
 
-        {isLoggedIn ? (
-          <a
-            href="/dashboard"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '12px',
-              backgroundColor: '#efefef',
-              color: '#0a0a0a',
-              fontWeight: 700,
-              fontSize: '15px',
-              letterSpacing: '-0.02em',
-              padding: '13px 28px',
-              borderRadius: '100px',
-              textDecoration: 'none',
-              fontFamily: 'inherit',
-              marginTop: '35px',
-            }}
-          >
-            continue →
-          </a>
-        ) : (
-          <button
-            onClick={signInWithGoogle}
-            onMouseEnter={e => {
-              const icon = e.currentTarget.querySelector('.btn-icon') as HTMLElement
-              const arrow = e.currentTarget.querySelector('.btn-arrow') as HTMLElement
-              if (icon) icon.style.transform = 'translateX(-4px)'
-              if (arrow) { arrow.style.opacity = '1'; arrow.style.transform = 'translateX(0px)' }
-            }}
-            onMouseLeave={e => {
-              const icon = e.currentTarget.querySelector('.btn-icon') as HTMLElement
-              const arrow = e.currentTarget.querySelector('.btn-arrow') as HTMLElement
-              if (icon) icon.style.transform = 'translateX(0px)'
-              if (arrow) { arrow.style.opacity = '0'; arrow.style.transform = 'translateX(-6px)' }
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              backgroundColor: '#efefef',
-              color: '#0a0a0a',
-              fontWeight: 700,
-              fontSize: '15px',
-              letterSpacing: '-0.02em',
-              padding: '13px 28px',
-              borderRadius: '100px',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              marginTop: '35px',
-            }}
-          >
-            <svg className="btn-icon" width="16" height="16" viewBox="0 0 24 24"
-              style={{ flexShrink: 0, transition: 'transform 0.2s ease' }}>
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            continue with google
-            <span className="btn-arrow" style={{
-              opacity: 0,
-              transform: 'translateX(-6px)',
-              transition: 'opacity 0.2s ease, transform 0.2s ease',
-              fontSize: '16px',
-            }}>→</span>
-          </button>
-        )}
+          <p className="holo-dim" style={{ fontSize: '15px', marginBottom: '40px' }}>
+            so no one lies about their predictions
+          </p>
+
+          {isLoggedIn ? (
+            <a href="/dashboard" className="holo-btn-solid" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '14px 28px', fontSize: '15px', textDecoration: 'none' }}>
+              continue →
+            </a>
+          ) : (
+            <button onClick={signInWithGoogle} className="holo-btn-solid" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '14px 28px', fontSize: '15px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              continue with google
+            </button>
+          )}
+        </div>
+
+        {/* the guy */}
+        <div style={{ flex: '1 1 280px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="anim-float-slow">
+          <Silhouette pose="kick" size={300} color="#5fe6ea" />
+        </div>
 
       </div>
     </main>

@@ -1,5 +1,14 @@
 'use client'
 import Logo from './Logo'
+import HoloBackground from './holo/HoloBackground'
+import ScoreboardBar from './ScoreboardBar'
+
+function shortDate(iso: string) {
+  const d = new Date(iso)
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+  const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000)
+  return `${ist.getUTCDate()} ${months[ist.getUTCMonth()]} · ${String(ist.getUTCHours()).padStart(2, '0')}:${String(ist.getUTCMinutes()).padStart(2, '0')}`
+}
 
 type Profile = {
   id: string
@@ -24,6 +33,7 @@ type Prediction = {
   }
 }
 
+
 export default function ProfileClient({
   profile,
   predictions,
@@ -42,28 +52,51 @@ export default function ProfileClient({
   const played = predictions.filter(p => p.fixtures?.status === 'finished')
   const accuracy = played.length > 0 ? Math.round((correctResults / played.length) * 100) : 0
 
+  function ScoreboardRow({ p }: { p: Prediction }) {
+    const f = p.fixtures
+    const finished = f.status === 'finished'
+
+    let correct: boolean | null = null
+    if (finished) {
+      const predResult = p.predicted_home > p.predicted_away ? 'home'
+        : p.predicted_away > p.predicted_home ? 'away' : 'draw'
+      correct = predResult === f.result
+    }
+    const accent = correct === null ? '#2ee6e6' : correct ? '#34d399' : '#e0606a'
+    const vsColor = correct === null ? '#9cc4ee' : correct ? '#8fe3bf' : '#efb0b5'
+
+    return (
+      <ScoreboardBar
+        homeTeam={f.home_team}
+        awayTeam={f.away_team}
+        homeSub={finished ? `FT ${f.home_score}` : shortDate(f.kickoff_at).split('·')[0]}
+        awaySub={finished ? `FT ${f.away_score}` : 'world cup'}
+        centerScore={`${p.predicted_home}–${p.predicted_away}`}
+        vsColor={vsColor}
+        accentColor={accent}
+      />
+    )
+  }
+
   return (
-    <main style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0a',
-      color: '#e8e8e8',
-      fontFamily: 'inherit',
-    }}>
-      <div style={{
-  padding: 'clamp(16px, 4vw, 32px)',
-}}>
+    <main style={{ minHeight: '100vh', position: 'relative', color: '#e8f4ff', fontFamily: 'inherit' }}>
+      <HoloBackground stadiumOpacity={0.18} />
+
+      <div className="holo-content" style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '860px', margin: '0 auto' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <Logo />
           {isOwnProfile && (
-            <a href="/fixtures" style={{ fontSize: '14px', color: '#bbb', textDecoration: 'none' }}>fixtures</a>
+            <a href="/fixtures" className="holo-link" style={{ fontSize: '14px' }}>fixtures</a>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '48px' }}>
-          <div style={{
-            width: '56px', height: '56px', borderRadius: '50%',
-            overflow: 'hidden', backgroundColor: '#1a1a1a', flexShrink: 0,
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
+          <div className="anim-float" style={{
+            width: '64px', height: '64px', borderRadius: '50%',
+            overflow: 'hidden', flexShrink: 0,
+            border: '1px solid rgba(46,230,230,0.5)',
+            background: 'rgba(8,16,30,0.6)',
           }}>
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt={profile.display_name} referrerPolicy="no-referrer"
@@ -72,24 +105,24 @@ export default function ProfileClient({
               <div style={{
                 width: '100%', height: '100%', display: 'flex',
                 alignItems: 'center', justifyContent: 'center',
-                fontSize: '20px', fontWeight: 700, color: '#555',
+                fontSize: '22px', fontWeight: 700, color: '#2ee6e6',
               }}>
                 {profile?.display_name?.[0]?.toUpperCase() || '?'}
               </div>
             )}
           </div>
           <div>
-            <h1 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.02em' }}>
+            <h1 className="holo-text" style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 800, letterSpacing: '-0.01em' }}>
               {profile?.display_name || 'anonymous'}
             </h1>
-            {isOwnProfile && <p style={{ fontSize: '12px', color: '#444', marginTop: '4px' }}>your profile</p>}
+            {isOwnProfile && <p className="holo-dim" style={{ fontSize: '12px', marginTop: '4px' }}>your profile</p>}
           </div>
         </div>
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: '16px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+          gap: '14px',
           marginBottom: '48px',
         }}>
           {[
@@ -98,69 +131,35 @@ export default function ProfileClient({
             { label: 'correct results', value: correctResults },
             { label: 'accuracy', value: `${accuracy}%` },
           ].map(stat => (
-            <div key={stat.label} style={{
-              backgroundColor: '#111',
-              border: '1px solid #1a1a1a',
-              borderRadius: '10px',
-              padding: '16px',
-            }}>
-              <p style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em' }}>{stat.value}</p>
-              <p style={{ fontSize: '11px', color: '#444', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{stat.label}</p>
+            <div key={stat.label} className="holo-panel-emerald" style={{ padding: '18px' }}>
+              <p className="holo-text-emerald" style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em' }}>{stat.value}</p>
+              <p style={{ fontSize: '11px', color: '#5f8f7d', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{stat.label}</p>
             </div>
           ))}
         </div>
 
-        <p style={{ fontSize: '11px', color: '#555', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px', fontWeight: 600 }}>
-          predictions
+        <p className="holo-text-emerald" style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px', fontWeight: 600 }}>
+          my predictions
         </p>
 
         {predictions.length === 0 ? (
-          <p style={{ color: '#444', fontSize: '14px' }}>no predictions yet.</p>
+          <p className="holo-dim" style={{ fontSize: '14px' }}>no predictions yet.</p>
         ) : (
-          predictions.map(p => {
-            const f = p.fixtures
-            if (!f) return null
-            const finished = f.status === 'finished'
-            const correct = finished && f.result !== null
-
-            let pointColor = '#444'
-            if (finished) {
-              const predResult = p.predicted_home > p.predicted_away ? 'home'
-                : p.predicted_away > p.predicted_home ? 'away' : 'draw'
-              if (predResult === f.result) pointColor = '#4ade80'
-              else pointColor = '#f87171'
-            }
-
-            return (
-              <div key={p.id} style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr auto 1fr auto',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '14px 0',
-                borderBottom: '1px solid #1a1a1a',
-              }}>
-                <p style={{ fontSize: '13px', color: '#ccc', textAlign: 'right' }}>{f.home_team}</p>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: '13px', color: '#666' }}>
-                    {p.predicted_home} — {p.predicted_away}
-                  </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {predictions.map(p => {
+              if (!p.fixtures) return null
+              return (
+                <div key={p.id}>
+                  <ScoreboardRow p={p} />
                   {p.predicted_scorers && p.predicted_scorers.length > 0 && (
-                    <p style={{ fontSize: '10px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
-                      ({p.predicted_scorers.join(', ')})
-                    </p>
-                  )}
-                  {finished && (
-                    <p style={{ fontSize: '11px', color: '#444', marginTop: '2px' }}>
-                      {f.home_score} — {f.away_score}
+                    <p style={{ fontSize: '10px', color: '#6f93b0', marginTop: '4px', paddingLeft: '4px' }}>
+                      ⚽ {p.predicted_scorers.join(', ')}
                     </p>
                   )}
                 </div>
-                <p style={{ fontSize: '13px', color: '#ccc' }}>{f.away_team}</p>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: pointColor }} />
-              </div>
-            )
-          })
+              )
+            })}
+          </div>
         )}
 
       </div>

@@ -130,7 +130,7 @@ export default function AdminClient({ fixtures }: { fixtures: Fixture[] }) {
                     </span>
                   )}
                   {f.scorers && f.scorers.length > 0 && (
-                    <span style={{ color: '#666', marginLeft: '8px', fontStyle: 'italic' }}>
+                    <span style={{ color: '#666', marginLeft: '8px' }}>
                       ({f.scorers.join(', ')})
                     </span>
                   )}
