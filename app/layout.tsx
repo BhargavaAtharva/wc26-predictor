@@ -14,6 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={GeistSans.variable}>
+      <head>
+        <link rel="preload" href="/silhouettes/kick.png" as="image" />
+        <link rel="preload" href="/silhouettes/run.png" as="image" />
+        <link rel="preload" href="/silhouettes/celebrate.png" as="image" />
+        <link rel="preload" href="/silhouettes/header.png" as="image" />
+      </head>
       <body className="antialiased">
         {children}
       </body>

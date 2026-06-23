@@ -1,13 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import HoloPlayer from './HoloPlayer'
 
 type Pose = 'kick' | 'run' | 'celebrate' | 'header'
 
 // Renders a per-pose silhouette image (drop transparent PNGs in /public/silhouettes/,
 // e.g. kick.png, run.png, celebrate.png, header.png), tinted to `color` via a CSS mask
-// so it matches each tier. Falls back to the drawn figure until the file exists.
-// No image is bundled here. Pass `src` to override the path.
+// so it matches each tier. Shows nothing until the PNG is loaded, then fades in.
 export default function Silhouette({
   src,
   color = '#2ee6e6',
@@ -28,8 +26,6 @@ export default function Silhouette({
     i.src = url
   }, [url])
 
-  if (!ok) return <HoloPlayer pose={pose} size={size} color={color} />
-
   return (
     <div
       aria-hidden
@@ -46,6 +42,8 @@ export default function Silhouette({
         maskRepeat: 'no-repeat',
         WebkitMaskPosition: 'center bottom',
         maskPosition: 'center bottom',
+        opacity: ok ? 1 : 0,
+        transition: 'opacity 0.5s ease',
       }}
     />
   )
