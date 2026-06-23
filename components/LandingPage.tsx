@@ -12,6 +12,8 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
   const [labelIndex, setLabelIndex] = useState(0)
   const [labelVisible, setLabelVisible] = useState(true)
   const [mainVisible, setMainVisible] = useState(false)
+  const [poseIndex, setPoseIndex] = useState(0)
+  const poses = ['kick', 'run', 'celebrate', 'header'] as const
 
   const stats = [
     { target: 48, label: 'teams' },
@@ -59,6 +61,14 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         })
       })
     })
+  }, [phase])
+
+  useEffect(() => {
+    if (phase !== 'main') return
+    const interval = setInterval(() => {
+      setPoseIndex(i => (i + 1) % 4)
+    }, 3000)
+    return () => clearInterval(interval)
   }, [phase])
 
   async function signInWithGoogle() {
@@ -134,9 +144,15 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           )}
         </div>
 
-        {/* the guy */}
+        {/* the guy — cycles through all poses */}
         <div style={{ flex: '1 1 280px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="anim-float-slow">
-          <Silhouette pose="kick" size={300} color="#5fe6ea" />
+          <div style={{ position: 'relative', width: 300 * 1.4, height: 300 }}>
+            {poses.map((pose, i) => (
+              <div key={pose} style={{ position: 'absolute', inset: 0, opacity: i === poseIndex ? 1 : 0, transition: 'opacity 0.8s ease' }}>
+                <Silhouette pose={pose} size={300} color="#5fe6ea" />
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>
