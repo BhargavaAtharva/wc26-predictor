@@ -8,6 +8,7 @@ const PHASES = [
   { key: 'md1', label: 'matchday 1', stage: 'group', matchday: 1 },
   { key: 'md2', label: 'matchday 2', stage: 'group', matchday: 2 },
   { key: 'md3', label: 'matchday 3', stage: 'group', matchday: 3 },
+  { key: 'playoffs', label: 'playoffs', stage: 'playoffs', matchday: null },
   { key: 'r32', label: 'round of 32', stage: 'r32', matchday: null },
   { key: 'r16', label: 'round of 16', stage: 'r16', matchday: null },
   { key: 'qf', label: 'quarter-finals', stage: 'qf', matchday: null },
@@ -40,13 +41,18 @@ export default async function LeaderboardPage() {
 
   const activePhasesSet = new Set<string>()
   activePhasesSet.add('overall') // always show overall
+  let hasKnockoutFinished = false
   finishedFixtures?.forEach(f => {
     if (f.stage === 'group' && f.matchday) {
       activePhasesSet.add(`md${f.matchday}`)
-    } else if (f.stage) {
+    } else if (f.stage && f.stage !== 'group') {
       activePhasesSet.add(f.stage)
+      hasKnockoutFinished = true
     }
   })
+  if (hasKnockoutFinished) {
+    activePhasesSet.add('playoffs')
+  }
 
   const activePhases = PHASES
     .filter(p => activePhasesSet.has(p.key))

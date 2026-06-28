@@ -6,6 +6,7 @@ import { getFlag } from '@/lib/flags'
 import Logo from './Logo'
 import HoloBackground from './holo/HoloBackground'
 import HoloTrophy from './holo/HoloTrophy'
+import PlayoffBracket from './PlayoffBracket'
 
 type Fixture = {
   id: string
@@ -64,13 +65,19 @@ export default function FixturesClient({
   const predMap: Record<string, Prediction> = {}
   initialPredictions.forEach(p => { predMap[p.fixture_id] = p })
 
-  const upcoming = fixtures
+  const groupFixtures = fixtures.filter(f => f.stage === 'group')
+  const knockoutFixtures = fixtures.filter(f => f.stage !== 'group')
+
+  const upcoming = groupFixtures
     .filter(f => f.status !== 'finished' && new Date(f.kickoff_at) > new Date() && f.home_team !== null && f.away_team !== null)
     .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
 
-  const finished = fixtures
+  const finished = groupFixtures
     .filter(f => f.status === 'finished')
     .sort((a, b) => new Date(b.kickoff_at).getTime() - new Date(a.kickoff_at).getTime())
+
+  const hasKnockout = knockoutFixtures.length > 0
+  const allGroupsDone = upcoming.length === 0
 
   const [queue, setQueue] = useState<Fixture[]>(upcoming)
   const [predicted, setPredicted] = useState<Record<string, Prediction>>(predMap)
@@ -409,7 +416,11 @@ export default function FixturesClient({
       </div>
 
       <div className="holo-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '0 clamp(16px, 4vw, 32px) 32px' }}>
-        {queue.length === 0 ? (
+        {queue.length === 0 && hasKnockout && allGroupsDone ? (
+          <div className="anim-fade-up" style={{ width: '100%' }}>
+            <PlayoffBracket fixtures={knockoutFixtures} predictions={initialPredictions} userId={userId} />
+          </div>
+        ) : queue.length === 0 ? (
           <div className="anim-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
             <HoloTrophy size={220} />
             <p className="holo-text" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>all done</p>

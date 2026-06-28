@@ -55,6 +55,40 @@ export async function GET(request: NextRequest) {
       console.error(`Failed to sync results for match ${match.id} (${match.homeTeam.name} vs ${match.awayTeam.name}):`, err)
     }
   }
+  // Phase 2: sync knockout fixture team names (teams get populated as rounds progress)
+  let teamsUpdated = 0
+  try {
+    const allRes = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches',
+      { headers: { 'X-Auth-Token': process.env.FOOTBALL_API_KEY! } }
+    )
+    if (allRes.ok) {
+      const allData = await allRes.json()
+      for (const match of allData.matches) {
+        if (match.stage === 'GROUP_STAGE') continue
+        const homeName = match.homeTeam?.name || null
+        const awayName = match.awayTeam?.name || null
+        if (!homeName && !awayName) continue
 
-  return NextResponse.json({ success: true, updated })
+        const { data: fix } = await supabase
+          .from('fixtures')
+          .select('id, home_team, away_team')
+          .eq('external_id', String(match.id))
+          .single()
+
+        if (!fix) continue
+        if (fix.home_team === homeName && fix.away_team === awayName) continue
+
+        await supabase
+          .from('fixtures')
+          .update({ home_team: homeName, away_team: awayName })
+          .eq('id', fix.id)
+        teamsUpdated++
+      }
+    }
+  } catch (err) {
+    console.error('Failed to sync knockout teams:', err)
+  }
+
+  return NextResponse.json({ success: true, updated, teamsUpdated })
 }

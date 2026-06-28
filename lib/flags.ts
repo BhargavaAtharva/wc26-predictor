@@ -25,7 +25,8 @@ export const FLAGS: Record<string, string> = {
   'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Norway': '🇳🇴', 'Sweden': '🇸🇪',
   'Russia': '🇷🇺', 'China': '🇨🇳', 'Thailand': '🇹🇭',
   'Vietnam': '🇻🇳', 'Kazakhstan': '🇰🇿', 'Azerbaijan': '🇦🇿',
-  'Ivory Coast': '🇨🇮', 'Cape Verde': '🇨🇻'
+  'Ivory Coast': '🇨🇮', 'Cape Verde': '🇨🇻',
+  'Cape Verde Islands': '🇨🇻', 'Congo DR': '🇨🇩'
 }
 
 export function getFlag(team: string | null | undefined) {

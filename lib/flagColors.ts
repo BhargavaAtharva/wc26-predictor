@@ -77,6 +77,8 @@ export const FLAG_COLORS: Record<string, string[]> = {
   'Azerbaijan': ['#00b9e4', '#ed2939', '#3f9c35'],
   'Ivory Coast': ['#f77f00', '#ffffff', '#009e60'],
   'Cape Verde': ['#003893', '#ffffff', '#cf2027'],
+  'Cape Verde Islands': ['#003893', '#ffffff', '#cf2027'],
+  'Congo DR': ['#007fff', '#ce1021', '#f7d618'],
 }
 
 const FALLBACK = ['#3a4a63', '#121a2c']
